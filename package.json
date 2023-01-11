@@ -1,0 +1,26 @@
+{
+  "name": "e-comm",
+  "version": "1.0.0",
+  "description": "A full stack e-commerce application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mughninoman97/e-comm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mughninoman97/e-comm/issues"
+  },
+  "homepage": "https://github.com/mughninoman97/e-comm#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.8.3"
+  }
+}
