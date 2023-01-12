@@ -1,5 +1,8 @@
 import mongoose from "mongoose"
 import AuthRoles from "../util/authRoles"
+import bcrypt from 'bcryptjs'
+import JWT from 'jsonwebtoken'
+import crypto from 'crypto'
 
 const userSchema = mongoose.Schema(
     {
@@ -41,5 +44,16 @@ const userSchema = mongoose.Schema(
     }
 
 );
+
+// challege 1- encrypt the password
+    userSchema.pre('save', async function(next){
+        if(this.modified("password")){
+            this.password = encryptedPassword;
+        }
+
+        if(!this.modified("password")) return next();
+        this.password = await bcrypt.hash(this.password,10)
+        next()
+    })
 
 export default mongoose.model("User", userSchema)
