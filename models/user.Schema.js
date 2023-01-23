@@ -46,7 +46,7 @@ const userSchema = mongoose.Schema(
 
 );
 
-// challege 1- encrypt the password
+// challege 1- encrypt the password - used hooks here
     userSchema.pre('save', async function(next){
         if(!this.modified("password")){
             this.password = encryptedPassword()
@@ -69,16 +69,31 @@ userSchema.methods = {
                 _id: this._id,
                 role: this.role
             },
-            config.JWT_SECRET,
+            
+                config.JWT_SECRET,
             {
                 expiresIn: config.JWT_EXPIRY
 
             }
             
         )
+    },
+
+    generateForgotPasswordToken: function(){
+        const forgotToken = crypto.randomBytes(20).toString('hex')
+
+        // step1: save to db 
+        this.forgotPasswordToken = crypto.createHash('sha256')
+        .update(forgotToken)
+        .digest('hex')
+
+        this.forgotPasswordExpiry = Date.now()+ 20 + 60 * 1000
+        // step2: return values to use
+        return forgotToken
     }
 }    
 // getneate jwt token 
+
 
 
 export default mongoose.model("User", userSchema)
