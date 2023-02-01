@@ -50,3 +50,58 @@ export const signup = asyncHandler(async (req,res) => {
         user
     })
 })
+
+/****************************************
+ *  @LOGIN 
+ *  @route http://localhsot:5000/api/auth/login
+ *  @parameters email ,password
+ *  @returns User Object
+ ******************************************/
+
+export const login = asyncHandler(async(req,res) => {
+    const {email,password} = req.body
+
+    if(!email || !password){
+        throw new CustomError('Please fill all fields',400)
+    }
+
+    const user = User.findOne({email}).select("+password")
+
+    if(!user){
+        throw new CustomError('invalid credentials', 400)
+    }
+
+    const isPasswordMatched = await user.comparePassword(password)
+
+    if(isPasswordMatched){
+        const token = user.getJwtToken()
+        user.password = undefined
+        res.cookie('token',token ,cookieOptions)
+        return res.status(200).json({
+            success:true,
+            token,
+            user
+        })
+    }
+    throw new CustomError('Invalid credentials',400)
+})
+
+
+/****************************************
+ *  @LOGOUT 
+ *  @route http://localhsot:5000/api/auth/login
+ *  @DESCRIPTION LOGOUT user by clearing cookies
+ *  @returns success message
+ ******************************************/
+export const logout = asyncHandler(async(req,res) =>{
+    // res.clearcookie
+    res.cookie('token',null, {
+        expires:new Date(Date.now()),
+        httpOnly:true
+    })
+    res.status(200).json({
+        success:true,
+        message:"Logged out succesfully"
+    })
+} )
+
