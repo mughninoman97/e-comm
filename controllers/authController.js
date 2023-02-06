@@ -2,6 +2,7 @@ import User from '../models/user.Schema.js'
 import asyncHandler from '../services/asyncHandler'
 import CustomError from '../util/customError'
 import mailHelper from '../util/mailHelper'
+import crypto from ' crypto'
 
 
 export const cookieOptions = {
@@ -66,7 +67,7 @@ export const login = asyncHandler(async(req,res) => {
         throw new CustomError('Please fill all fields',400)
     }
 
-    const user = User.findOne({email}).select("+password")
+    const user =await User.findOne({email}).select("+password")
 
     if(!user){
         throw new CustomError('invalid credentials', 400)
@@ -152,3 +153,49 @@ export const forgotpassword = asyncHandler(async (req,res) => {
 
    }
 })
+
+/****************************************
+ *  @RESET PASSWORD 
+ *  @route http://localhsot:5000/api/auth/password/reset/resetPasswordToken
+ *  @DESCRIPTION user will submit email and we will generate a token
+ *  @returns success message-email sent
+ *  @parameters email
+ 
+ ******************************************/
+export const resetPassword =  asyncHandler(async(req,res) => {
+    const {token:resetToken} = req.params
+    const {password,confirmPassword} = req.body
+
+    const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex')
+
+    const user = await User.findOne({
+        forgotPasswordToken:resetPasswordToken,
+        forgotPasswordExpiry:{ $gt: Date.now()}
+    })
+
+    if(!user){
+        throw new CustomError('password token is invalid or expired',400)
+    }
+
+    if(password !== confirmPassword ){
+        throw new CustomError('password and conf password doesnt match',400)
+
+    }
+    user.password = password
+    user.forgotPasswordToken  = undefined
+    user.forgotPasswordExpiry = undefined
+
+    await user.save()
+
+    //create a token anf send a response
+    const token = user.getJwtToken()
+    user.password=undefined
+    res.cookie("token ", token, cookieOptions)
+    res.status(200).json()
+
+})
+
+// TODO:  create a controller for change password
